@@ -1,31 +1,35 @@
 import requests
 from bs4 import BeautifulSoup
 
-# URL to scrape
 url = "https://en.wikipedia.org/wiki/Data_science"
 
-# send GET request
-response = requests.get(url)
-html = response.text
+# add User-Agent header
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+response = requests.get(url, headers=headers)
+response.raise_for_status()
 
-# parse the HTML
-soup = BeautifulSoup(html, "html.parser")
+soup = BeautifulSoup(response.text, "html.parser")
 
-# extract and print page title
-title = soup.find("title").text
-print("Page Title:", title)
+# extract title safely
+title_tag = soup.find("title")
+if title_tag:
+    title = title_tag.text
+    print("Page Title:", title)
+else:
+    print("Title tag not found. Page may be blocked or HTML changed.")
 
-# find main content div
-content_div = soup.find("div", id="mw-content-text")
+# extract first paragraph
+content_div = soup.find("div", class_="mw-parser-output")
 
-# get first paragraph from the main content
-first_paragraph = ""
-for p in content_div.find_all("p"):
-    text = p.get_text(strip=True)
-    if len(text) >= 50:  # check length requirement
-        first_paragraph = text
-        break
+if content_div:
+    first_paragraph = ""
+    for p in content_div.find_all("p"):
+        text = p.get_text(strip=True)
+        if len(text) >= 50:
+            first_paragraph = text
+            break
+    print("\nFirst Paragraph:")
+    print(first_paragraph)
+else:
+    print("Main content not found.")
 
-# print the first paragraph
-print("\nFirst Paragraph:")
-print(first_paragraph)
